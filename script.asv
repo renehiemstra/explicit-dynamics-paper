@@ -3,9 +3,9 @@ clear all; close all; clc;
 addpath('src','mex');
 
 % parameters
-p  = 3;             % polynomial degree
-ne = [128,128];     % number of elements in each direction
-alpha = 0.0;        % parameter in [0,1] that induces nonlinearity in the mapping
+p  = 4;             % polynomial degree
+ne = [64,64];       % number of elements in each direction
+alpha = 0.5;        % parameter in [0,1] that induces nonlinearity in the mapping
 k = 2;              % wavenumber in space.
 lambda = 2;         % wavenumber in time.
 kappa = 1;          % material diffusion coefficient
@@ -14,7 +14,7 @@ Tmax = 1.0;         % Maximum time to simulate
 flag_mex = true;    % flag to do quadrature loop in C
 
 % pick the discretization method:
-discretization.method = 'dual'; % choose: 'standard' or 'dual' or 'lumped'
+discretization.method = 'standard'; % choose: 'standard' or 'dual' or 'lumped'
 discretization.product = 'weighted'; % choose: 'standard' or 'weighted'
 
 % problem specifics
@@ -66,7 +66,7 @@ if strcmp(discretization.product, 'standard')
         discretization.mass = assemble_mass_matrix(discretization, flag_mex);
         discretization.chol = chol(discretization.mass);
     elseif strcmp(discretization.method, 'lumped')
-        discretization.approxinverse = reshape(1 ./ sum(assemble_mass_matrix(discretization, flag_mex), 2), discretization.basis{1}.dim, discretization.basis{2}.dim);
+        discretization.approxinversevec = 1 ./ sum(assemble_mass_matrix(discretization, flag_mex), 2);
     else
         error(strcat('Not implemented for ', discretization.method));
     end
@@ -75,8 +75,8 @@ elseif strcmp(discretization.product, 'weighted')
         discretization.chol{1} = chol(discretization.massmatrix{1});
         discretization.chol{2} = chol(discretization.massmatrix{2});
     elseif strcmp(discretization.method, 'lumped')
-        discretization.approxinverse{1} = 1 ./ sum(discretization.massmatrix{1}, 2);
-        discretization.approxinverse{2} = 1 ./ sum(discretization.massmatrix{2}, 2);
+        discretization.approxinverse{1} = approximate_l2_inverse(discretization.basis{1}.p, discretization.basis{1}.kts, true, true);
+        discretization.approxinverse{2} = approximate_l2_inverse(discretization.basis{2}.p, discretization.basis{2}.kts, true, true);
     elseif strcmp(discretization.method, 'dual')
         discretization.approxinverse{1} = approximate_l2_inverse(discretization.basis{1}.p, discretization.basis{1}.kts, true, true);
         discretization.approxinverse{2} = approximate_l2_inverse(discretization.basis{2}.p, discretization.basis{2}.kts, true, true);
@@ -90,11 +90,11 @@ end
 %% Setup time integrator
 
 % basic Runge-Kutta integrator setup
-integrator = setup_rk_method(discretization);
+integrator = setup_rk_method(p);
 
 % final time and safety factor applied to critical time-step
 integrator.tmax = Tmax;
-integrator.safety_factor = 0.3;
+integrator.safety_factor = 0.5;
 
 % compute the maximum eigenfrequency
 omega_max = estimate_maximum_eigenvalue(discretization, problem);
