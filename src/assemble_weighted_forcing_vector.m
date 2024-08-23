@@ -46,18 +46,8 @@ function f = assemble_weighted_forcing_vector(coeffs, discretization, material, 
     end
 
     % perform sumfactorization and yield vector
-    f = basis{1}.testfuns{2}' * quadrature.sumfact{1} * basis{2}.testfuns{1} + ...
-            basis{1}.testfuns{1}' * quadrature.sumfact{2} * basis{2}.testfuns{2} + ...
-                basis{1}.testfuns{1}' * quadrature.sumfact{3} * basis{2}.testfuns{1};
+    f = basis{1}.scaledtestfuns{2}' * quadrature.sumfact{1} * basis{2}.scaledtestfuns{1} + ...
+            basis{1}.scaledtestfuns{1}' * quadrature.sumfact{2} * basis{2}.scaledtestfuns{2} + ...
+                basis{1}.scaledtestfuns{1}' * quadrature.sumfact{3} * basis{2}.scaledtestfuns{1};
     
-    % invert mass matrix
-    if strcmp(discretization.method, 'standard')
-        f = ((discretization.chol{1} \ (discretization.chol{1}' \ f)) / discretization.chol{2}) /  discretization.chol{2}';
-    elseif strcmp(discretization.method, 'dual')
-        f = discretization.approxinverse{1} * f * discretization.approxinverse{2}';
-    elseif strcmp(discretization.method, 'lumped')
-        f = discretization.approxinverse{1} .* f .* discretization.approxinverse{2}';
-    else
-        error(strcat('Routine not implemented for ', discretization.method));
-    end
 end
