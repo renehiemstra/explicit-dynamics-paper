@@ -4,12 +4,12 @@ addpath('src','mex');
 
 % parameters
 p  = 3;             % polynomial degree
-ne = [32,32];       % number of elements in each direction
+ne = [8, 8];       % number of elements in each direction
 Tmax = 1;           % Maximum time to simulate
-flag_mex = true;    % flag to do quadrature loop in C
+flag_mex = false;    % flag to do quadrature loop in C
 
 % pick the discretization method:
-method = 'standard'; % choose: 'standard' or 'dual' or 'lumped'
+method = 'dual'; % choose: 'standard' or 'dual' or 'lumped'
 product = 'weighted'; % choose: 'standard' or 'weighted'
 
 % get problem specs
