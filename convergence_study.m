@@ -15,8 +15,8 @@ problem = benchmark_1_2d(k, lambda, kappa, alpha);
 
 %% get discretization and time integrator
 
-NE = [16, 32, 64, 128];
-P = [5];
+NE = [16, 32, 64];
+P = [3];
 Methods = {'standard', 'standard';'standard', 'lumped'; 'weighted', 'dual'};
 
 l2e = zeros(length(NE),length(Methods), length(P)); time = zeros(length(NE),length(Methods), length(P));
@@ -41,14 +41,14 @@ for k=1:length(P)
             % measure runtime
             tic;
                 % get discretization object
-                [discretization, integrator] = get_discretization(problem, p, [ne,ne], Tmax, method, product, flag_mex);
+                [discretization, integrator] = get_discretization_2d(problem, p, [ne,ne], Tmax, method, product, flag_mex);
                 
                 % Runge-Kutta time integration
-                discretization = solve(problem, discretization, integrator, flag_mex);
+                discretization = solve_2d(problem, discretization, integrator, flag_mex);
             time(i, j, k) = toc;
         
             % compute relative l2 error
-            l2e(i, j, k) = evaluate_l2error(discretization, @(x,y) problem.solution.displacement(x,y,Tmax), "relative");
+            l2e(i, j, k) = evaluate_l2error_2d(discretization, @(x,y) problem.solution.displacement(x,y,Tmax), "relative");
             i = i + 1;
         end
     end

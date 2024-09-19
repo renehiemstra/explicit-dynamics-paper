@@ -1,5 +1,5 @@
 % perform the quadrature loop
-function sumfact = mat_quadrature_loop_standard_mass(m1, m2, ...
+function sumfact = mat_quadrature_loop_standard_mass_2d(m1, m2, ...
         sumfact, ...
         weights, ...
         jacobian)
@@ -23,4 +23,9 @@ function sumfact = mat_quadrature_loop_standard_mass(m1, m2, ...
             sumfact{1}(k,l) = w;
         end
     end
+end
+
+function A = compute_jacobian(dX, k, l)
+    A = [dX{1,1}(k, l) dX{1,2}(k, l);
+         dX{2,1}(k, l) dX{2,2}(k, l)];
 end

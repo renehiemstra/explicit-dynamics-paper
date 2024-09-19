@@ -1,6 +1,6 @@
 % computes 'F - K * d' in a matrix-free fashion for a 2d problem
 % coefs is a matrix of coefficients for 'd'
-function f = assemble_weighted_forcing_vector(coeffs, discretization, material, forces, flag_mex)
+function f = assemble_standard_forcing_vector(coeffs, discretization, material, forces, flag_mex)
 
     % initialize
     geometry = discretization.geometry;
@@ -8,8 +8,8 @@ function f = assemble_weighted_forcing_vector(coeffs, discretization, material, 
     quadrature = discretization.quadrature;
 
     % compute partial derivatives of the displacment field
-    displacement.ders = {basis{1}.trialfuns{2} * coeffs * basis{2}.trialfuns{1}'; 
-                         basis{1}.trialfuns{1} * coeffs * basis{2}.trialfuns{2}'}; 
+    displacement.ders = {tensorconstract(coeffs, basis{1}.trialfuns{2}, basis{2}.trialfuns{1}, 2);
+                         tensorconstract(coeffs, basis{1}.trialfuns{1}, basis{2}.trialfuns{2}, 2)};
 
     % initialize the quadrature loop
     m1 = quadrature.rule{1}.npoints;
@@ -28,26 +28,32 @@ function f = assemble_weighted_forcing_vector(coeffs, discretization, material, 
         assert(isscalar(m2) && round(m2)==m2);
         assert(isscalar(kappa) && isa(m1,'double'));
         % call C function
-        mex_quadrature_loop_weighted(m1, m2, kappa, ...
+        mex_quadrature_loop_standard_2d(m1, m2, kappa, ...
             quadrature.sumfact, ...
             weights, ...
             forces_eval, ...
             displacement.ders,...
-            geometry.jacobian,...
-            geometry.hessian);
+            geometry.jacobian);
     else
-        quadrature.sumfact = mat_quadrature_loop_weighted(m1, m2, kappa, ...
+        quadrature.sumfact = mat_quadrature_loop_standard_2d(m1, m2, kappa, ...
             quadrature.sumfact, ...
             weights, ...
             forces_eval, ...
             displacement.ders,...
-            geometry.jacobian,...
-            geometry.hessian);
+            geometry.jacobian);
     end
 
     % perform sumfactorization and yield vector
-    f = basis{1}.scaledtestfuns{2}' * quadrature.sumfact{1} * basis{2}.scaledtestfuns{1} + ...
-            basis{1}.scaledtestfuns{1}' * quadrature.sumfact{2} * basis{2}.scaledtestfuns{2} + ...
-                basis{1}.scaledtestfuns{1}' * quadrature.sumfact{3} * basis{2}.scaledtestfuns{1};
+    f = tensorconstract(quadrature.sumfact{1}, basis{1}.testfuns{2}, basis{2}.testfuns{1}, 1) + ...
+        tensorconstract(quadrature.sumfact{2}, basis{1}.testfuns{1}, basis{2}.testfuns{2}, 1) + ...
+        tensorconstract(quadrature.sumfact{3}, basis{1}.testfuns{1}, basis{2}.testfuns{1}, 1);
     
+    % invert mass matrix
+    if strcmp(discretization.method, 'standard')
+        f = reshape(discretization.chol \ (discretization.chol' \ f(:)), discretization.dims);
+    elseif strcmp(discretization.method, 'lumped')
+        f = discretization.approxinverse .* f;
+    else
+        error(strcat('Routine not implemented for ', discretization.method));
+    end
 end

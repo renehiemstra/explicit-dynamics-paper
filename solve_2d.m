@@ -1,18 +1,21 @@
-function discretization = solve(problem, discretization, integrator, flag_mex)
+function discretization = solve_2d(problem, discretization, integrator, flag_mex)
 
-    p = max(discretization.basis{1}.p, discretization.basis{1}.p);
+    for i=2:-1:1
+        P(i) = discretization.basis{i}.p;
+    end
+    p = max(P);
 
     % get initial quess using L2-projection
-    d = project(discretization, @(x,y) problem.solution.displacement(x,y,0.0));
-    v = project(discretization, @(x,y) problem.solution.velocity(x,y,0.0));
+    d = project_2d(discretization, @(x,y) problem.solution.displacement(x,y,0.0));
+    v = project_2d(discretization, @(x,y) problem.solution.velocity(x,y,0.0));
     
     % choose solver object
     if strcmp(discretization.product, 'standard')
         % standard - L2 inner product
-        solver = @(d, v, t) assemble_standard_forcing_vector(d, discretization, problem.material, @(x, y) problem.solution.forcing(x, y, t), flag_mex);
+        solver = @(d, v, t) assemble_standard_forcing_vector_2d(d, discretization, problem.material, @(x, y) problem.solution.forcing(x, y, t), flag_mex);
     elseif strcmp(discretization.product, 'weighted')
         % weighted L2 inner product
-        solver = @(d, v, t) assemble_weighted_forcing_vector(d, discretization, problem.material, @(x, y) problem.solution.forcing(x, y, t), flag_mex);
+        solver = @(d, v, t) assemble_weighted_forcing_vector_2d(d, discretization, problem.material, @(x, y) problem.solution.forcing(x, y, t), flag_mex);
     end
     
 
