@@ -85,6 +85,19 @@ void set_hessian(double hessian[3][3][3], double *DA[6][3], int lindex){
     }
 }
 
+// compute the gradient of the determinant
+void det_grad(double h[3], double A[3][3], double Ainv[3][3], double hessian[3][3][3], double d){
+    for (mwSize i=0; i<3; i++) {
+        h[i] = 0.0;
+        for (mwSize j=0; j<3; j++) {
+            h[i] = h[i] + hessian[i][i][j] * Ainv[i][j] * d;
+            int i1 = (i+1)%3; int i2 = (i+2)%3;
+            int j1 = (j+1)%3; int j2 = (j+2)%3;
+            h[i] = h[i] + A[j][i] * (hessian[i][i1][j1] * A[j2][i2] + A[j1][i1] * hessian[i][i2][j2] - hessian[i][i2][j1] * A[j2][i1] - A[j1][i2] * hessian[i][i1][j2]);
+        }
+    }
+}
+
 /* The computational routine */
 void quadrature_loop(mwSize m1, mwSize m2, mwSize m3, 
             double kappa,
@@ -119,30 +132,13 @@ void quadrature_loop(mwSize m1, mwSize m2, mwSize m3,
                 // load precomputed hessian terms
                 set_hessian(H, hessian, lindex);
 
-                // compute gradient of volume element (derivatives of jacobian)
-                for (mwSize l=0; l<3; l++) {
-                    c_du[l] = 0;
-                    // first term in differentiating determinant
-                    c_du[l] = c_du[l] +
-                    H[l][0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) + 
-                    A[0][0] * (H[l][1][1] * A[2][2] + A[1][1] * H[l][2][2]) -
-                    A[0][0] * (H[l][2][1] * A[2][1] + A[1][2] * H[l][1][2]);
-                    // second term in differentiating determinant
-                    c_du[l] = c_du[l] -
-                    H[l][1][0] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) + 
-                    A[0][1] * (H[l][0][1] * A[2][2] + A[1][0] * H[l][2][2]) -
-                    A[0][1] * (H[l][2][1] * A[2][0] + A[1][2] * H[l][0][2]);
-                    // third term in differentiating determinant
-                    c_du[l] = c_du[l] +
-                    H[l][2][0] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]) + 
-                    A[0][2] * (H[l][0][1] * A[2][1] + A[1][0] * H[l][1][2]) -
-                    A[0][2] * (H[l][1][1] * A[2][0] + A[1][1] * H[l][0][2]);
-                }
-
                 // compute inverse of jacobian matrix A and
                 // return determinant of the mapping
                 c = do_inverse_return_determinant(A, Ainv);
 
+                // compute gradient of volume element (derivative of jacobian)
+                det_grad(c_du, A, Ainv, H, c);
+                
                 // bring derivatives of jacobian to physical coordinates
                 c_grad[0] = Ainv[0][0] * c_du[0] + Ainv[1][0] * c_du[1] + Ainv[2][0] * c_du[2];
                 c_grad[1] = Ainv[0][1] * c_du[0] + Ainv[1][1] * c_du[1] + Ainv[2][1] * c_du[2];
