@@ -25,7 +25,7 @@ function discretization = solve_3d(problem, discretization, integrator, flag_mex
     for t=0:dt:T-dt
         
         % status
-        if mod(i, 100)==0
+        if mod(i, 10)==0
             fprintf('time integrator, p = %d, mesh = %d x %d x %d, time-step %d%s%d \n', p, discretization.basis{1}.nelms, discretization.basis{2}.nelms, discretization.basis{3}.nelms,  i, '/', integrator.tmax/integrator.dt);
         end
 

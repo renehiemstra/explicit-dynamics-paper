@@ -7,9 +7,18 @@ function plot_2d_contours(problem, discretization, varargin)
         v = linpts(problem.geometry.mapping.basis{2}, gran(2));
         [x, y] = evaluate_mapping_2d(problem.geometry.mapping, u, v);
         u_bar  = evaluate_field_2d(discretization, u, v);
-       
+        % plot contours
+        fig = figure; hold on;
+        contourf(x, y, u_bar);
         % plot mesh
-        surf(x, y, u_bar);
+        % U = unique(discretization.basis{1}.kts);
+        % V = unique(discretization.basis{2}.kts);
+        % [x, y] = evaluate_mapping_2d(problem.geometry.mapping, U, v);
+        % plot(x',y','k','linewidth',2);
+        % [x, y] = evaluate_mapping_2d(problem.geometry.mapping, u, V);
+        % plot(x,y,'k','linewidth',2);
+        axis off;
+        export_fig(fig,'solution','-pdf');
     elseif nargin==4
         gran = varargin{1};
         crossection = varargin{2};

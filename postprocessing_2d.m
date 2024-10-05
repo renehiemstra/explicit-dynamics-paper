@@ -1,0 +1,103 @@
+%% postprocessing 2D results
+clear all; close all; clc;
+addpath('altmany-export_fig-v3/');
+
+% get problem specs
+alpha = 0.0;        % parameter in [0,1] that induces nonlinearity in the mappmethoding
+kwave = 4;          % wavenumber in space.
+lambda = 4;         % wavenumber in time.
+filename = sprintf('study-2d-alpha%d-lambda%d-k%d', 10*alpha, lambda, kwave);
+load(filename)
+
+% pick results polynomial degree
+k = 1;
+p = P(k);
+
+L2error = l2e(:,:,k);
+Time = time(:,:,k);
+
+fontsize = 16;
+
+% Create figure and axis
+figure1 = figure;
+
+ex = [6, 7.5, 9.2];
+pp = [4, 4, 6];
+
+axes1 = axes('Parent',figure1); hold(axes1,'on');
+loglog1 = plot(NE, L2error,'Marker','o','LineWidth',2,'Parent',axes1);
+createtriangle(64, 10^-ex(k), pp(k), 0.2, 'b');
+createtriangle(64, 10^-2, 2, 0.2, 'r');
+set(loglog1(1),'DisplayName','consistent mass','MarkerFaceColor',[0 0 0],...
+    'Color',[0 0 0]);
+set(loglog1(3),'DisplayName','dual lumping','MarkerFaceColor',[0 0 1],...
+    'Color',[0 0 1]);
+set(loglog1(2),'DisplayName','row-sum lumping','MarkerFaceColor',[1 0 0],...
+    'Color',[1 0 0]);
+
+xlim([NE(1),NE(end)]);
+ylim([1e-11,1e1]);
+ylabel('L2-error','FontSize',fontsize);
+xlabel('n_e','FontSize',fontsize);
+
+box(axes1,'on');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'FontSize',14,'XMinorTick','on','XScale','log','XTick',NE,...
+    'YMinorTick','off','YScale','log');
+% Create legend
+% legend1 = legend(axes1,'show');
+% set(legend1,'Location','southwest','FontSize',fontsize);
+
+
+figure2 = figure; 
+axes2 = axes('Parent',figure2); hold(axes2,'on');
+loglog2 = loglog(NE, Time, '-o', 'LineWidth', 2,'Parent',axes2);
+xlabel('n_e','FontSize',fontsize); ylabel('time','FontSize',fontsize); xticks(NE);
+set(loglog2(1),'DisplayName','consistent mass','MarkerFaceColor',[0 0 0],...
+    'Color',[0 0 0]);
+set(loglog2(3),'DisplayName','dual lumping','MarkerFaceColor',[0 0 1],...
+    'Color',[0 0 1]);
+set(loglog2(2),'DisplayName','row-sum lumping','MarkerFaceColor',[1 0 0],...
+    'Color',[1 0 0]);
+% Set the remaining axes properties
+set(axes2,'FontSize',14,'XMinorTick','on','XScale','log','XTick',NE,...
+    'YMinorTick','off','YScale','log');
+% Create legend
+xlim([NE(1),NE(end)]);
+box(axes2,'on');
+hold(axes2,'off');
+% legend2 = legend(axes2,'show');
+% set(legend2,'Location','southeast','FontSize',fontsize);
+
+
+figure3 = figure; 
+axes3 = axes('Parent',figure3); hold(axes3,'on');
+loglog3 = loglog(Time, L2error, '-o', 'LineWidth', 2,'Parent',axes3);
+ylabel('L2-error','FontSize',fontsize); xlabel('time','FontSize',fontsize);
+set(loglog3(1),'DisplayName','consistent mass','MarkerFaceColor',[0 0 0],...
+    'Color',[0 0 0]);
+set(loglog3(3),'DisplayName','dual lumping','MarkerFaceColor',[0 0 1],...
+    'Color',[0 0 1]);
+set(loglog3(2),'DisplayName','row-sum lumping','MarkerFaceColor',[1 0 0],...
+    'Color',[1 0 0]);
+% Set the remaining axes properties
+set(axes3,'FontSize',14,'XMinorTick','on','XScale','log',...
+    'YMinorTick','off','YScale','log');
+ylim([1e-11,1e1]);
+% Create legend
+box(axes3,'on');
+hold(axes3,'off');
+legend3 = legend(axes3,'show');
+set(legend3,'Location','southwest','FontSize',fontsize);
+
+%% save results
+addpath('altmany-export_fig-v3/');
+
+filename_1 = sprintf('conv-2d-p%d-alpha%d-lambda%d-k%d', p, 10*alpha, lambda, kwave);
+filename_2 = sprintf('time-2d-p%d-alpha%d-lambda%d-k%d', p, 10*alpha, lambda, kwave);
+filename_3 = sprintf('perf-2d-p%d-alpha%d-lambda%d-k%d', p, 10*alpha, lambda, kwave);
+
+export_fig(figure1,filename_1, '-pdf');
+export_fig(figure2,filename_2, '-pdf');
+export_fig(figure3,filename_3, '-pdf');

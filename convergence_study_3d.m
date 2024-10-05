@@ -11,13 +11,13 @@ alpha = 0.0;        % parameter in [0,1] that induces nonlinearity in the mappme
 k = 2;              % wavenumber in space.
 lambda = 2;         % wavenumber in time.
 kappa = 1;          % material diffusion coefficient
-problem = benchmark_1_2d(k, lambda, kappa, alpha);
+problem = benchmark_1_3d(k, lambda, kappa, alpha);
 
 %% get discretization and time integrator
 
-NE = [16, 32, 64];
+NE = [8,16,32,64];
 P = [3];
-Methods = {'standard', 'standard';'standard', 'lumped'; 'weighted', 'dual'};
+Methods = {'standard', 'standard'; 'standard', 'lumped'; 'weighted', 'dual'};
 
 l2e = zeros(length(NE),length(Methods), length(P)); time = zeros(length(NE),length(Methods), length(P));
 
@@ -41,14 +41,14 @@ for k=1:length(P)
             % measure runtime
             tic;
                 % get discretization object
-                [discretization, integrator] = get_discretization_2d(problem, p, [ne,ne], Tmax, method, product, flag_mex);
+                [discretization, integrator] = get_discretization_3d(problem, p, [ne,ne,ne], Tmax, method, product, flag_mex);
                 
                 % Runge-Kutta time integration
-                discretization = solve_2d(problem, discretization, integrator, flag_mex);
+                discretization = solve_3d(problem, discretization, integrator, flag_mex);
             time(i, j, k) = toc;
         
             % compute relative l2 error
-            l2e(i, j, k) = evaluate_l2error_2d(discretization, @(x,y) problem.solution.displacement(x,y,Tmax), "relative");
+            l2e(i, j, k) = evaluate_l2error_3d(discretization, @(x,y,z) problem.solution.displacement(x,y,z,Tmax), "relative");
             i = i + 1;
         end
     end

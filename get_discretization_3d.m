@@ -42,7 +42,7 @@ function [discretization, integrator] = get_discretization_3d(problem, p, ne, Tm
             discretization.mass = assemble_mass_matrix_3d(discretization, flag_mex);
             discretization.chol = chol(discretization.mass);
         elseif strcmp(discretization.method, 'lumped')
-            discretization.approxinverse = reshape(1 ./ sum(assemble_mass_matrix(discretization, flag_mex), 2), discretization.basis{1}.dim, discretization.basis{2}.dim);
+            discretization.approxinverse = reshape(1 ./ sum(assemble_mass_matrix_3d(discretization, flag_mex), 2), discretization.basis{1}.dim, discretization.basis{2}.dim, discretization.basis{3}.dim);
         else
             error(strcat('Not implemented for ', discretization.method));
         end

@@ -24,5 +24,5 @@ function omega_max = estimate_maximum_eigenvalue_2d(discretization, problem, fla
 
     % compute maximum eigenvalue of the stiffness matrix
     A = @(z) -reshape( solver(reshape(z, dims)), prod(dims), 1);
-    omega_max = sqrt(eigs(A, prod(dims), 1, 'largestabs'));
+    omega_max = sqrt(real(eigs(A, prod(dims), 1, 'largestabs')));
 end
